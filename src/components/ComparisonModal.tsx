@@ -1,7 +1,21 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { X, DollarSign, GraduationCap, Trophy, MapPin, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { University } from "@/types/university";
+
+interface University {
+  id: string;
+  name: string;
+  country: string;
+  city: string;
+  degree_level: string;
+  tuition_fee: number;
+  min_gpa: number;
+  min_ielts: number;
+  image_url: string | null;
+  ranking: number | null;
+  acceptance_rate: number | null;
+  description: string | null;
+}
 
 interface ComparisonModalProps {
   universities: University[];
@@ -106,7 +120,7 @@ export function ComparisonModal({
                     <th key={uni.id} className="p-4 text-center min-w-[200px]">
                       <div className="space-y-2">
                         <img
-                          src={uni.image_url}
+                          src={uni.image_url || 'https://images.unsplash.com/photo-1562774053-701939374585?w=800'}
                           alt={uni.name}
                           className="w-full h-24 object-cover rounded-lg"
                         />
@@ -121,7 +135,7 @@ export function ComparisonModal({
 
               {/* Comparison Rows */}
               <tbody>
-                {comparisonRows.map((row, index) => (
+                {comparisonRows.map((row) => (
                   <tr
                     key={row.label}
                     className={`border-b border-border ${

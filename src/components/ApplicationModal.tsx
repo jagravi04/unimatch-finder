@@ -12,8 +12,19 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { University, Application } from "@/types/university";
+import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+
+interface University {
+  id: string;
+  name: string;
+  city: string;
+  country: string;
+  degree_level: string;
+  min_gpa: number;
+  min_ielts: number;
+  image_url: string | null;
+}
 
 interface ApplicationModalProps {
   university: University | null;
@@ -23,6 +34,20 @@ interface ApplicationModalProps {
 
 type Step = "personal" | "academic";
 
+interface FormData {
+  first_name: string;
+  last_name: string;
+  email: string;
+  phone: string;
+  date_of_birth: string;
+  nationality: string;
+  gpa: number | undefined;
+  ielts_score: number | undefined;
+  degree_type: string;
+  field_of_study: string;
+  statement_of_purpose: string;
+}
+
 export function ApplicationModal({
   university,
   isOpen,
@@ -30,7 +55,7 @@ export function ApplicationModal({
 }: ApplicationModalProps) {
   const [step, setStep] = useState<Step>("personal");
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [formData, setFormData] = useState<Partial<Application>>({
+  const [formData, setFormData] = useState<FormData>({
     first_name: "",
     last_name: "",
     email: "",
@@ -78,7 +103,7 @@ export function ApplicationModal({
         return false;
       }
 
-      // Validate eligibility
+      // Client-side validation (backend will also validate)
       if (formData.gpa < university.min_gpa) {
         toast.error(
           `Your GPA (${formData.gpa}) is below the minimum requirement (${university.min_gpa})`
@@ -114,25 +139,68 @@ export function ApplicationModal({
 
     setIsSubmitting(true);
 
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 1500));
+    try {
+      const { data, error } = await supabase.functions.invoke('submit-application', {
+        body: {
+          university_id: university.id,
+          first_name: formData.first_name,
+          last_name: formData.last_name,
+          email: formData.email,
+          phone: formData.phone || null,
+          date_of_birth: formData.date_of_birth || null,
+          nationality: formData.nationality || null,
+          gpa: formData.gpa,
+          ielts_score: formData.ielts_score,
+          degree_type: formData.degree_type || null,
+          field_of_study: formData.field_of_study,
+          statement_of_purpose: formData.statement_of_purpose || null,
+        }
+      });
 
-    toast.success(
-      <div className="flex items-center gap-2">
-        <CheckCircle2 className="w-5 h-5 text-success" />
-        <div>
-          <div className="font-semibold">Application Submitted!</div>
-          <div className="text-sm text-muted-foreground">
-            We'll review your application for {university.name}
+      if (error) {
+        console.error('Edge function error:', error);
+        toast.error('Failed to submit application. Please try again.');
+        return;
+      }
+
+      if (!data.success) {
+        toast.error(data.details || data.error || 'Application rejected');
+        return;
+      }
+
+      toast.success(
+        <div className="flex items-center gap-2">
+          <CheckCircle2 className="w-5 h-5 text-success" />
+          <div>
+            <div className="font-semibold">Application Submitted!</div>
+            <div className="text-sm text-muted-foreground">
+              {data.message}
+            </div>
           </div>
         </div>
-      </div>
-    );
+      );
 
-    setIsSubmitting(false);
-    setStep("personal");
-    setFormData({});
-    onClose();
+      setStep("personal");
+      setFormData({
+        first_name: "",
+        last_name: "",
+        email: "",
+        phone: "",
+        date_of_birth: "",
+        nationality: "",
+        gpa: undefined,
+        ielts_score: undefined,
+        degree_type: "",
+        field_of_study: "",
+        statement_of_purpose: "",
+      });
+      onClose();
+    } catch (err) {
+      console.error('Unexpected error:', err);
+      toast.error('An unexpected error occurred. Please try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const steps = [
@@ -161,7 +229,7 @@ export function ApplicationModal({
           <div className="relative p-6 border-b border-border">
             <div className="flex items-center gap-4">
               <img
-                src={university.image_url}
+                src={university.image_url || 'https://images.unsplash.com/photo-1562774053-701939374585?w=800'}
                 alt={university.name}
                 className="w-16 h-16 rounded-xl object-cover"
               />

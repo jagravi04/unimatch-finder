@@ -1,7 +1,12 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Scale } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { University } from "@/types/university";
+
+interface University {
+  id: string;
+  name: string;
+  image_url: string | null;
+}
 
 interface CompareBarProps {
   selectedUniversities: University[];
@@ -38,7 +43,7 @@ export function CompareBar({
                 className="relative group"
               >
                 <img
-                  src={uni.image_url}
+                  src={uni.image_url || 'https://images.unsplash.com/photo-1562774053-701939374585?w=800'}
                   alt={uni.name}
                   className="w-12 h-12 rounded-lg object-cover ring-2 ring-accent"
                 />

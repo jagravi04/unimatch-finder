@@ -1,41 +1,76 @@
 import { useState, useEffect, useMemo } from "react";
-import { University, FilterParams } from "@/types/university";
-import { mockUniversities } from "@/data/universities";
+import { supabase } from "@/integrations/supabase/client";
+import { FilterParams } from "@/types/university";
+
+export interface University {
+  id: string;
+  name: string;
+  country: string;
+  city: string;
+  degree_level: string;
+  tuition_fee: number;
+  min_gpa: number;
+  min_ielts: number;
+  image_url: string | null;
+  ranking: number | null;
+  acceptance_rate: number | null;
+  description: string | null;
+}
 
 export function useUniversities(filters: FilterParams) {
   const [universities, setUniversities] = useState<University[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    // Simulate API call with a small delay
-    setLoading(true);
-    const timer = setTimeout(() => {
-      let filtered = [...mockUniversities];
+    async function fetchUniversities() {
+      setLoading(true);
+      setError(null);
 
-      // Filter by country
-      if (filters.country && filters.country !== "all") {
-        filtered = filtered.filter((u) => u.country === filters.country);
+      try {
+        let query = supabase
+          .from('universities')
+          .select('*')
+          .order('ranking', { ascending: true, nullsFirst: false });
+
+        // Filter by country
+        if (filters.country && filters.country !== "all") {
+          query = query.eq('country', filters.country);
+        }
+
+        // Filter by degree level
+        if (filters.degree_level && filters.degree_level !== "all") {
+          query = query.eq('degree_level', filters.degree_level);
+        }
+
+        // Filter by tuition range
+        if (filters.min_tuition !== undefined) {
+          query = query.gte('tuition_fee', filters.min_tuition);
+        }
+        if (filters.max_tuition !== undefined) {
+          query = query.lte('tuition_fee', filters.max_tuition);
+        }
+
+        const { data, error: fetchError } = await query;
+
+        if (fetchError) {
+          console.error('Error fetching universities:', fetchError);
+          setError('Failed to fetch universities');
+          setUniversities([]);
+        } else {
+          setUniversities(data || []);
+        }
+      } catch (err) {
+        console.error('Unexpected error:', err);
+        setError('An unexpected error occurred');
+        setUniversities([]);
+      } finally {
+        setLoading(false);
       }
+    }
 
-      // Filter by degree level
-      if (filters.degree_level && filters.degree_level !== "all") {
-        filtered = filtered.filter((u) => u.degree_level === filters.degree_level);
-      }
-
-      // Filter by tuition range
-      if (filters.min_tuition !== undefined) {
-        filtered = filtered.filter((u) => u.tuition_fee >= filters.min_tuition!);
-      }
-      if (filters.max_tuition !== undefined) {
-        filtered = filtered.filter((u) => u.tuition_fee <= filters.max_tuition!);
-      }
-
-      setUniversities(filtered);
-      setLoading(false);
-    }, 300);
-
-    return () => clearTimeout(timer);
-  }, [filters]);
+    fetchUniversities();
+  }, [filters.country, filters.degree_level, filters.min_tuition, filters.max_tuition]);
 
   // Check eligibility for each university
   const universitiesWithEligibility = useMemo(() => {
@@ -47,5 +82,5 @@ export function useUniversities(filters: FilterParams) {
     }));
   }, [universities, filters.user_gpa, filters.user_ielts]);
 
-  return { universities: universitiesWithEligibility, loading };
+  return { universities: universitiesWithEligibility, loading, error };
 }
