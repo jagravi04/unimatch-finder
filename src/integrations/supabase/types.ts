@@ -14,7 +14,122 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      applications: {
+        Row: {
+          created_at: string
+          date_of_birth: string | null
+          degree_type: string | null
+          email: string
+          field_of_study: string
+          first_name: string
+          gpa: number
+          id: string
+          ielts_score: number
+          last_name: string
+          nationality: string | null
+          phone: string | null
+          statement_of_purpose: string | null
+          status: string
+          university_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          date_of_birth?: string | null
+          degree_type?: string | null
+          email: string
+          field_of_study: string
+          first_name: string
+          gpa: number
+          id?: string
+          ielts_score: number
+          last_name: string
+          nationality?: string | null
+          phone?: string | null
+          statement_of_purpose?: string | null
+          status?: string
+          university_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          date_of_birth?: string | null
+          degree_type?: string | null
+          email?: string
+          field_of_study?: string
+          first_name?: string
+          gpa?: number
+          id?: string
+          ielts_score?: number
+          last_name?: string
+          nationality?: string | null
+          phone?: string | null
+          statement_of_purpose?: string | null
+          status?: string
+          university_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "applications_university_id_fkey"
+            columns: ["university_id"]
+            isOneToOne: false
+            referencedRelation: "universities"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      universities: {
+        Row: {
+          acceptance_rate: number | null
+          city: string
+          country: string
+          created_at: string
+          degree_level: string
+          description: string | null
+          id: string
+          image_url: string | null
+          min_gpa: number
+          min_ielts: number
+          name: string
+          ranking: number | null
+          tuition_fee: number
+          updated_at: string
+        }
+        Insert: {
+          acceptance_rate?: number | null
+          city: string
+          country: string
+          created_at?: string
+          degree_level: string
+          description?: string | null
+          id?: string
+          image_url?: string | null
+          min_gpa: number
+          min_ielts: number
+          name: string
+          ranking?: number | null
+          tuition_fee: number
+          updated_at?: string
+        }
+        Update: {
+          acceptance_rate?: number | null
+          city?: string
+          country?: string
+          created_at?: string
+          degree_level?: string
+          description?: string | null
+          id?: string
+          image_url?: string | null
+          min_gpa?: number
+          min_ielts?: number
+          name?: string
+          ranking?: number | null
+          tuition_fee?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

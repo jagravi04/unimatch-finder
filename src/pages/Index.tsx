@@ -1,6 +1,7 @@
 import { useState, useCallback } from "react";
 import { motion } from "framer-motion";
 import { Loader2 } from "lucide-react";
+import { Helmet } from "react-helmet";
 import { Header } from "@/components/Header";
 import { HeroSection } from "@/components/HeroSection";
 import { FilterSection } from "@/components/FilterSection";
@@ -10,8 +11,23 @@ import { ComparisonModal } from "@/components/ComparisonModal";
 import { ApplicationModal } from "@/components/ApplicationModal";
 import { Footer } from "@/components/Footer";
 import { useUniversities } from "@/hooks/useUniversities";
-import { University, FilterParams } from "@/types/university";
-import { Helmet } from "react-helmet";
+import { FilterParams } from "@/types/university";
+
+interface University {
+  id: string;
+  name: string;
+  country: string;
+  city: string;
+  degree_level: string;
+  tuition_fee: number;
+  min_gpa: number;
+  min_ielts: number;
+  image_url: string | null;
+  ranking: number | null;
+  acceptance_rate: number | null;
+  description: string | null;
+  isEligible?: boolean;
+}
 
 const Index = () => {
   // Filter state
@@ -30,8 +46,8 @@ const Index = () => {
   const [selectedUniversity, setSelectedUniversity] = useState<University | null>(null);
   const [isApplicationModalOpen, setIsApplicationModalOpen] = useState(false);
 
-  // Fetch universities
-  const { universities, loading } = useUniversities(filters);
+  // Fetch universities from database
+  const { universities, loading, error } = useUniversities(filters);
 
   // Get selected university objects
   const selectedUniversities = universities.filter((u) =>
@@ -118,6 +134,13 @@ const Index = () => {
                 {loading ? (
                   <div className="flex items-center justify-center py-20">
                     <Loader2 className="w-8 h-8 text-accent animate-spin" />
+                  </div>
+                ) : error ? (
+                  <div className="text-center py-20">
+                    <p className="text-lg text-destructive">{error}</p>
+                    <p className="text-sm text-muted-foreground mt-2">
+                      Please try again later.
+                    </p>
                   </div>
                 ) : universities.length === 0 ? (
                   <div className="text-center py-20">

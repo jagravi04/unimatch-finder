@@ -3,10 +3,25 @@ import { MapPin, DollarSign, GraduationCap, Trophy, CheckCircle2, XCircle } from
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
-import { University } from "@/types/university";
+
+interface University {
+  id: string;
+  name: string;
+  country: string;
+  city: string;
+  degree_level: string;
+  tuition_fee: number;
+  min_gpa: number;
+  min_ielts: number;
+  image_url: string | null;
+  ranking: number | null;
+  acceptance_rate: number | null;
+  description: string | null;
+  isEligible?: boolean;
+}
 
 interface UniversityCardProps {
-  university: University & { isEligible?: boolean };
+  university: University;
   isSelected: boolean;
   onToggleCompare: (id: string) => void;
   onApply: (university: University) => void;
@@ -35,7 +50,7 @@ export function UniversityCard({
       {/* Image */}
       <div className="relative h-48 overflow-hidden">
         <img
-          src={university.image_url}
+          src={university.image_url || 'https://images.unsplash.com/photo-1562774053-701939374585?w=800'}
           alt={university.name}
           className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
         />
